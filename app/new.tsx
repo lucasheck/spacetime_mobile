@@ -16,6 +16,7 @@ import { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import * as SecureStore from 'expo-secure-store'
 import { api } from '../src/lib/api'
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 export default function New() {
   const router = useRouter()
@@ -24,6 +25,8 @@ export default function New() {
   const [isPublic, setIsPublic] = useState(false)
   const [content, setContent] = useState('')
   const [preview, setPreview] = useState('')
+  const [dateEvent, setDateEvent] = useState(new Date()) // 28/05/2023
+  const [show, setShow] = useState(false)
 
   async function openImagePicker() {
     try {
@@ -62,12 +65,13 @@ export default function New() {
         console.log(error)
       }
 
-      await api.post(
+      const memory = await api.post(
         '/memories',
         {
           content,
           isPublic,
           coverUrl,
+          dateEvent,
         },
         {
           headers: {
@@ -75,9 +79,22 @@ export default function New() {
           },
         },
       )
+      let id = ''
+      if (memory.status === 200) {
+        id = memory.data.id
+      }
 
-      router.push('/memories')
+      router.push({
+        pathname: '/memories',
+        params: { id },
+      })
     }
+  }
+
+  const onChangeDatePicker = (event, selectedDate) => {
+    const currentDate = selectedDate
+    setShow(false)
+    setDateEvent(currentDate)
   }
 
   return (
@@ -105,6 +122,31 @@ export default function New() {
             Tornar memória pública
           </Text>
         </View>
+
+        <TouchableOpacity
+          className="flex-row items-center gap-2 pl-2"
+          onPress={() => setShow(true)}
+        >
+          <Icon size={20} name="calendar" color="#9e9ea0" />
+          <Text
+            id="txtDateEvent"
+            className="pl-5 font-body text-base text-gray-200"
+          >
+            Data do evento: {dateEvent.getDate()}/{dateEvent.getMonth() + 1}/
+            {dateEvent.getFullYear()}
+          </Text>
+        </TouchableOpacity>
+
+        {show && (
+          <DateTimePicker
+            display="calendar"
+            testID="dateTimePicker"
+            value={dateEvent}
+            is24Hour={true}
+            onChange={onChangeDatePicker}
+            maximumDate={new Date()}
+          />
+        )}
 
         <TouchableOpacity
           onPress={openImagePicker}
