@@ -57,6 +57,7 @@ export default function Layout() {
         <Stack.Screen name="memories" />
         <Stack.Screen name="new" />
         <Stack.Screen name="details" />
+        <Stack.Screen name="edit" />
       </Stack>
     </ImageBackground>
   )
